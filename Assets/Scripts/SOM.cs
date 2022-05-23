@@ -54,7 +54,7 @@ public class SOM : MonoBehaviour
     {        
         Vector2[] UpdatedCitiesRoute = new Vector2[PointLocations.Length];
         Vector2[] Cities = Normalize(PointLocations);
-        int[] RouteIndices = new int[PointLocations.Length];
+        int[] Route = new int[PointLocations.Length];
         int Population = PointLocations.Length * 6; //Taking Population 6 times the size of the total number of cities.
         Vector2[] Network = GetTheNetwork(Population);
 
@@ -72,11 +72,9 @@ public class SOM : MonoBehaviour
             LearningRate = (float)(LearningRate * 0.99997);
         }
 
-        RouteIndices = GetRoute(Cities, Network);
-        
-        //Vector2[] Route = Array.Sort(RouteIndices, Cities);
-        //plot network
-        //plot route
+        Route = GetRoute(Cities, Network);        
+        Array.Sort(Route, Cities);
+        //plot points and lines
         return UpdatedCitiesRoute;
     }
 
