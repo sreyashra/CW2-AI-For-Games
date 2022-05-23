@@ -75,7 +75,8 @@ public class SOM : MonoBehaviour
         }
         //Spawns the circle based on cities data
         Route = GetRoute(Cities, Network);
-
+        Array.Sort(Route, Cities);
+        //plot points and lines
         Vector2[] citiesCopy = Cities;
         for (int i = 0; i < Cities.Length; i++)
         {
@@ -90,9 +91,6 @@ public class SOM : MonoBehaviour
             temp.name = citiesCopy[i].ToString();
             //Debug.Log(Cities[i]);
         }
-        
-        Array.Sort(Route, Cities);
-        //plot points and lines
         return UpdatedCitiesRoute;
     }
 
