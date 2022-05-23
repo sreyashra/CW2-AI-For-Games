@@ -52,7 +52,6 @@ public class SOM : MonoBehaviour
 
     Vector2[] SelfOM(Vector2[] PointLocations, int Iterations, float LearningRate)
     {        
-        Vector2[] UpdatedCitiesRoute = new Vector2[PointLocations.Length];
         Vector2[] Cities = Normalize(PointLocations);
         int[] Route = new int[PointLocations.Length];
         int Population = PointLocations.Length * 6; //Taking Population 6 times the size of the total number of cities.
@@ -72,10 +71,10 @@ public class SOM : MonoBehaviour
             LearningRate = (float)(LearningRate * 0.99997);
         }
 
-        Route = GetRoute(Cities, Network);        
+        Route = GetRoute(Cities, Network);
         Array.Sort(Route, Cities);
         //plot points and lines
-        return UpdatedCitiesRoute;
+        return Cities;
     }
 
     Vector2[] Normalize(Vector2[] PointLocations)
