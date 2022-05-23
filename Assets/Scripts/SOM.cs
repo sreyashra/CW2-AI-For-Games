@@ -54,7 +54,7 @@ public class SOM : MonoBehaviour
     {        
         Vector2[] UpdatedCitiesRoute = new Vector2[PointLocations.Length];
         Vector2[] Cities = Normalize(PointLocations);
-        int[] Route = new int[PointLocations.Length];
+        int[] RouteIndices = new int[PointLocations.Length];
         int Population = PointLocations.Length * 6; //Taking Population 6 times the size of the total number of cities.
         Vector2[] Network = GetTheNetwork(Population);
 
@@ -72,7 +72,9 @@ public class SOM : MonoBehaviour
             LearningRate = (float)(LearningRate * 0.99997);
         }
 
-        Route = GetRoute(Cities, Network);
+        RouteIndices = GetRoute(Cities, Network);
+        
+        //Vector2[] Route = Array.Sort(RouteIndices, Cities);
         //plot network
         //plot route
         return UpdatedCitiesRoute;
@@ -80,11 +82,21 @@ public class SOM : MonoBehaviour
 
     Vector2[] Normalize(Vector2[] PointLocations)
     {
+        float[] PointLocationsX = new float[PointLocations.Length];
+        float[] PointLocationsY = new float[PointLocations.Length];
         for (int i = 0; i < PointLocations.Length; i++)
         {
-            PointLocations[i] = PointLocations[i].normalized;
+            PointLocationsX[i] = PointLocations[i].x;
+            PointLocationsY[i] = PointLocations[i].y;
         }
-        return PointLocations;
+        float ratio = (PointLocationsX.Max() - PointLocationsX.Min()) / (PointLocationsY.Max() - PointLocationsY.Min());
+        Vector2[] Points = new Vector2[PointLocations.Length];
+        for(int i = 0; i < PointLocations.Length; i++)
+        {
+            Points[i].x = ((PointLocations[i].x - PointLocationsX.Min()) / (PointLocationsX.Max() - PointLocationsX.Min())) * ratio;
+            Points[i].y = (PointLocations[i].y - PointLocationsY.Min()) / (PointLocationsY.Max() - PointLocationsY.Min());
+        }
+        return Points;
     }
 
     Vector2[] GetTheNetwork(int temp)
