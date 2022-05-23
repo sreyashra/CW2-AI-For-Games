@@ -7,9 +7,11 @@ using System.Linq;
 public class SOM : MonoBehaviour
 {
     [SerializeField]
-    int Iterations;
+    int Iterations = 100000;
     [SerializeField]
-    float LearningRate;
+    float LearningRate = 0.8f;
+
+    [SerializeField] private GameObject cityPrefab;
 
     void Start()
     {
@@ -19,7 +21,7 @@ public class SOM : MonoBehaviour
 
     Vector2[] ReadFile()
     {
-        string[] filelines = File.ReadAllLines("C:/Users/AchalSharma/Desktop/som-tsp/assets/qa194.tsp");
+        string[] filelines = File.ReadAllLines("C:/Users/rasre/Downloads/qa194.tsp");
         int DimVar = filelines.Length;
         int i, j;
 
@@ -71,8 +73,24 @@ public class SOM : MonoBehaviour
             Network = UpdatedNetwork(gaussian, city, Network);
             LearningRate = (float)(LearningRate * 0.99997);
         }
+        //Spawns the circle based on cities data
+        Route = GetRoute(Cities, Network);
 
-        Route = GetRoute(Cities, Network);        
+        Vector2[] citiesCopy = Cities;
+        for (int i = 0; i < Cities.Length; i++)
+        {
+            citiesCopy[i].x *= 9;
+            citiesCopy[i].y *= 9;
+        }
+        for (int i = 0; i < Cities.Length; i++)
+        {
+            GameObject temp = Instantiate(cityPrefab);
+            temp.transform.position = citiesCopy[i];
+            temp.transform.SetParent(this.transform);
+            temp.name = citiesCopy[i].ToString();
+            //Debug.Log(Cities[i]);
+        }
+        
         Array.Sort(Route, Cities);
         //plot points and lines
         return UpdatedCitiesRoute;
