@@ -13,8 +13,8 @@ public class SOM : MonoBehaviour
 
     void Start()
     {
-        var PointLocations = ReadFile();
-        var Path = SelfOM(PointLocations, Iterations, LearningRate);
+        Vector2[] PointLocations = ReadFile();
+        Vector2[] Route = SelfOM(PointLocations, Iterations, LearningRate);
     }
 
     Vector2[] ReadFile()
@@ -51,42 +51,31 @@ public class SOM : MonoBehaviour
     }
 
     Vector2[] SelfOM(Vector2[] PointLocations, int Iterations, float LearningRate)
-    {
-        Vector2[] Path = Normalize(PointLocations);
+    {        
+        Vector2[] UpdatedCitiesRoute = new Vector2[PointLocations.Length];
+        Vector2[] Cities = Normalize(PointLocations);
+        int[] Route = new int[PointLocations.Length];
         int Population = PointLocations.Length * 6; //Taking Population 6 times the size of the total number of cities.
-        Vector2[] NetworkSize = GetTheNetwork(Population);
-        //for(int i = 0; i < iterations; i++)
-        //{
-        //    if(i % 100 != 0)
-        //    print('\t> Iteration {}/{}'.format(i, iterations), end = "\r")
-        //# Choose a random city
-        //city = cities.sample(1)[['x', 'y']].values
-        //winner_idx = select_closest(network, city)
-        //# Generate a filter that applies changes to the winner's gaussian
-        //gaussian = get_neighborhood(winner_idx, n // 10, network.shape[0])
-        //# Update the network's weights (closer to the city)
-        //network += gaussian[:, np.newaxis] * learning_rate * (city - network)
-        //# Decay the variables
-        //learning_rate = learning_rate * 0.99997
-        //n = n * 0.9997
+        Vector2[] Network = GetTheNetwork(Population);
 
-        //# Check for plotting interval
-        //    if not i % 1000:
-        //    plot_network(cities, network, name = 'diagrams/{:05d}.png'.format(i))
+        for (int i = 0; i < Iterations; i++)
+        {
+            if (i % 100 != 0)
+            {
+                print("\tIteration {i}/{Iterations}");
+            }
+            int randomIndex = UnityEngine.Random.Range(0, Cities.Length);
+            Vector2 city = Cities[randomIndex];
+            int winnerIndex = GetClosestCity(Network, city);
+            float[] gaussian = GaussianConvert(winnerIndex, Population / 10, Network.Length);
+            Network = UpdatedNetwork(gaussian, city, Network);
+            LearningRate = (float)(LearningRate * 0.99997);
+        }
 
-        //# Check if any parameter has completely decayed.
-        //    if n < 1:
-        //    print('Radius has completely decayed, finishing execution',
-        //          'at {} iterations'.format(i))
-        //    break
-        //if learning_rate < 0.001:
-        //    print('Learning rate has completely decayed, finishing execution',
-        //          'at {} iterations'.format(i))
-        //    break
-        //else:
-        //    print('Completed {} iterations.'.format(iterations))
-        //}
-        return PointLocations;
+        Route = GetRoute(Cities, Network);
+        //plot network
+        //plot route
+        return UpdatedCitiesRoute;
     }
 
     Vector2[] Normalize(Vector2[] PointLocations)
@@ -108,5 +97,51 @@ public class SOM : MonoBehaviour
             RandomVector[i].y = (float)rand.NextDouble();
         }
         return RandomVector;
+    }
+
+    int GetClosestCity(Vector2[] Network, Vector2 city)
+    {
+        float[] distance = new float[Network.Length];
+        for (int i = 0; i < Network.Length; i++)
+        {
+            distance[i] = Vector2.Distance(Network[i], city);
+        }
+        return Array.IndexOf(distance, distance.Min());
+    }
+
+    float[] GaussianConvert(int center, int radix, int domain)
+    {
+        float[] dist = new float[domain];
+        float[] gaussian = new float[domain];
+        if (radix < 1)
+        {
+            radix = 1;
+        }
+        for(int i = 0; i < domain; i++)
+        {
+            dist[i] = Mathf.Min(Mathf.Abs(center - i), domain - Mathf.Abs(center - i));
+            gaussian[i] = Mathf.Exp(( -(dist[i] * dist[i])) / (2 * (radix * radix)));
+        }        
+        return gaussian;
+    }
+
+    Vector2[] UpdatedNetwork(float[] gaussian, Vector2 city, Vector2[] Network)
+    {
+        for(int i = 0; i < Network.Length; i++)
+        {
+            Network[i].x = Network[i].x + (gaussian[i] * LearningRate * (city.x - Network[i].x));
+            Network[i].y = Network[i].y + (gaussian[i] * LearningRate * (city.y - Network[i].y));
+        }
+        return Network;
+    }
+
+    int[] GetRoute(Vector2[] Cities, Vector2[] Network)
+    {
+        int[] Route = new int[Cities.Length];
+        for(int i = 0; i < Cities.Length; i++)
+        {
+            Route[i] = GetClosestCity(Network, Cities[i]);
+        }
+        return Route;
     }
 }
