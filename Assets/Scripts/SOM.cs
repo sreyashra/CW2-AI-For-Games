@@ -4,6 +4,7 @@ using System.Globalization;
 using System;
 using System.Linq;
 
+
 public class SOM : MonoBehaviour
 {
     [SerializeField]
@@ -12,9 +13,13 @@ public class SOM : MonoBehaviour
     float LearningRate = 0.8f;
 
     [SerializeField] private GameObject cityPrefab;
+    private LineRenderer routeRenderer;
 
     void Start()
     {
+        routeRenderer = gameObject.AddComponent<LineRenderer>();
+        routeRenderer.material.color=Color.blue;
+        routeRenderer.widthMultiplier = 0.05f;
         Vector2[] PointLocations = ReadFile();
         Vector2[] Route = SelfOM(PointLocations, Iterations, LearningRate);
     }
@@ -91,9 +96,22 @@ public class SOM : MonoBehaviour
             temp.name = citiesCopy[i].ToString();
             //Debug.Log(Cities[i]);
         }
+
+        //Generates lines or route among the cities
+        routeRenderer.positionCount = citiesCopy.Length;
+        DrawRoute(citiesCopy);
+        
         return UpdatedCitiesRoute;
     }
 
+    void DrawRoute(Vector2[] pos)
+    {
+        for (int i = 0; i < pos.Length; i++)
+        {
+            routeRenderer.SetPosition(i,pos[i]);
+        }
+    }
+    
     Vector2[] Normalize(Vector2[] PointLocations)
     {
         float[] PointLocationsX = new float[PointLocations.Length];
