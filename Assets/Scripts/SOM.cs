@@ -11,6 +11,8 @@ public class SOM : MonoBehaviour
     int Iterations = 100000;
     [SerializeField]
     float LearningRate = 0.8f;
+    float LearningRateDecay = 0.99997f;
+    float PopulationDecay = 0.9997f;
 
     [SerializeField] private GameObject cityPrefab;
     private LineRenderer routeRenderer;
@@ -26,7 +28,7 @@ public class SOM : MonoBehaviour
 
     Vector2[] ReadFile()
     {
-        string[] filelines = File.ReadAllLines("C:/Users/rasre/Downloads/qa194.tsp");
+        string[] filelines = File.ReadAllLines("C:/Users/AchalSharma/Desktop/som-tsp/assets/qa194.tsp");
         int DimVar = filelines.Length;
         int i, j;
 
@@ -62,7 +64,7 @@ public class SOM : MonoBehaviour
         Vector2[] UpdatedCitiesRoute = new Vector2[PointLocations.Length];
         Vector2[] Cities = Normalize(PointLocations);
         int[] Route = new int[PointLocations.Length];
-        int Population = PointLocations.Length * 6; //Taking Population 6 times the size of the total number of cities.
+        float Population = PointLocations.Length * 6; //Taking Population 6 times the size of the total number of cities.
         Vector2[] Network = GetTheNetwork(Population);
 
         for (int i = 0; i < Iterations; i++)
@@ -74,9 +76,10 @@ public class SOM : MonoBehaviour
             int randomIndex = UnityEngine.Random.Range(0, Cities.Length);
             Vector2 city = Cities[randomIndex];
             int winnerIndex = GetClosestCity(Network, city);
-            float[] gaussian = GaussianConvert(winnerIndex, Population / 10, Network.Length);
+            float[] gaussian = GaussianConvert(winnerIndex, Population / 10.0f, Network.Length);
             Network = UpdatedNetwork(gaussian, city, Network);
-            LearningRate = (float)(LearningRate * 0.99997);
+            LearningRate = (float)(LearningRate * LearningRateDecay);
+            Population *= PopulationDecay;
         }
         //Spawns the circle based on cities data
         Route = GetRoute(Cities, Network);
@@ -131,14 +134,12 @@ public class SOM : MonoBehaviour
         return Points;
     }
 
-    Vector2[] GetTheNetwork(int temp)
+    Vector2[] GetTheNetwork(float temp)
     {
-        System.Random rand = new();
-        Vector2[] RandomVector = new Vector2[temp];
+        Vector2[] RandomVector = new Vector2[(int)temp];
         for (int i = 0; i < temp; i++)
         {
-            RandomVector[i].x = (float)rand.NextDouble();
-            RandomVector[i].y = (float)rand.NextDouble();
+            RandomVector[i] = new Vector2(UnityEngine.Random.Range(-1.0f, 1.0f), UnityEngine.Random.Range(-1.0f, 1.0f));
         }
         return RandomVector;
     }
@@ -153,7 +154,7 @@ public class SOM : MonoBehaviour
         return Array.IndexOf(distance, distance.Min());
     }
 
-    float[] GaussianConvert(int center, int radix, int domain)
+    float[] GaussianConvert(int center, float radix, int domain)
     {
         float[] dist = new float[domain];
         float[] gaussian = new float[domain];
@@ -173,8 +174,7 @@ public class SOM : MonoBehaviour
     {
         for(int i = 0; i < Network.Length; i++)
         {
-            Network[i].x = Network[i].x + (gaussian[i] * LearningRate * (city.x - Network[i].x));
-            Network[i].y = Network[i].y + (gaussian[i] * LearningRate * (city.y - Network[i].y));
+            Network[i] += gaussian[i] * LearningRate * (city - Network[i]);
         }
         return Network;
     }
