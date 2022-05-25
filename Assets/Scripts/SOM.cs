@@ -4,22 +4,29 @@ using System.Globalization;
 using System;
 using System.Linq;
 
+
 public class SOM : MonoBehaviour
 {
     [SerializeField]
-    int Iterations;
+    int Iterations = 100000;
     [SerializeField]
-    float LearningRate;
+    float LearningRate = 0.8f;
+
+    [SerializeField] private GameObject cityPrefab;
+    private LineRenderer routeRenderer;
 
     void Start()
     {
+        routeRenderer = gameObject.AddComponent<LineRenderer>();
+        routeRenderer.material.color=Color.blue;
+        routeRenderer.widthMultiplier = 0.05f;
         Vector2[] PointLocations = ReadFile();
         Vector2[] Route = SelfOM(PointLocations, Iterations, LearningRate);
     }
 
     Vector2[] ReadFile()
     {
-        string[] filelines = File.ReadAllLines("C:/Users/AchalSharma/Desktop/som-tsp/assets/qa194.tsp");
+        string[] filelines = File.ReadAllLines("C:/Users/rasre/Downloads/qa194.tsp");
         int DimVar = filelines.Length;
         int i, j;
 
@@ -52,6 +59,7 @@ public class SOM : MonoBehaviour
 
     Vector2[] SelfOM(Vector2[] PointLocations, int Iterations, float LearningRate)
     {        
+        Vector2[] UpdatedCitiesRoute = new Vector2[PointLocations.Length];
         Vector2[] Cities = Normalize(PointLocations);
         int[] Route = new int[PointLocations.Length];
         int Population = PointLocations.Length * 6; //Taking Population 6 times the size of the total number of cities.
@@ -70,13 +78,40 @@ public class SOM : MonoBehaviour
             Network = UpdatedNetwork(gaussian, city, Network);
             LearningRate = (float)(LearningRate * 0.99997);
         }
-
+        //Spawns the circle based on cities data
         Route = GetRoute(Cities, Network);
         Array.Sort(Route, Cities);
         //plot points and lines
-        return Cities;
+        Vector2[] citiesCopy = Cities;
+        for (int i = 0; i < Cities.Length; i++)
+        {
+            citiesCopy[i].x *= 9;
+            citiesCopy[i].y *= 9;
+        }
+        for (int i = 0; i < Cities.Length; i++)
+        {
+            GameObject temp = Instantiate(cityPrefab);
+            temp.transform.position = citiesCopy[i];
+            temp.transform.SetParent(this.transform);
+            temp.name = citiesCopy[i].ToString();
+            //Debug.Log(Cities[i]);
+        }
+
+        //Generates lines or route among the cities
+        routeRenderer.positionCount = citiesCopy.Length;
+        DrawRoute(citiesCopy);
+        
+        return UpdatedCitiesRoute;
     }
 
+    void DrawRoute(Vector2[] pos)
+    {
+        for (int i = 0; i < pos.Length; i++)
+        {
+            routeRenderer.SetPosition(i,pos[i]);
+        }
+    }
+    
     Vector2[] Normalize(Vector2[] PointLocations)
     {
         float[] PointLocationsX = new float[PointLocations.Length];
