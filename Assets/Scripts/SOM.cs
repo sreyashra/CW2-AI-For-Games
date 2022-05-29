@@ -17,7 +17,7 @@ public class SOM : MonoBehaviour
     [SerializeField] private GameObject cityPrefab;
     private LineRenderer routeRenderer;
 
-    void Start()
+    public void GenerateFile()
     {
         routeRenderer = gameObject.AddComponent<LineRenderer>();
         routeRenderer.material.color=Color.blue;
@@ -28,7 +28,7 @@ public class SOM : MonoBehaviour
 
     Vector2[] ReadFile()
     {
-        string[] filelines = File.ReadAllLines("C:/Users/AchalSharma/Desktop/som-tsp/assets/qa194.tsp");
+        string[] filelines = File.ReadAllLines("C:/Users/rasre/Downloads/qa194.tsp");
         int DimVar = filelines.Length;
         int i, j;
 
